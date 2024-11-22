@@ -1,0 +1,39 @@
+[
+    {
+        "model": "Api.customer",
+        "pk": 1,
+        "fields": {}
+    },
+    {
+        "model": "Api.customer",
+        "pk": 2,
+        "fields": {}
+    },
+    {
+        "model": "Api.contract",
+        "pk": 1,
+        "fields": {
+            "customer": 1,
+            "contract_number": "123456",
+            "premium": "500.00"
+        }
+    },
+    {
+        "model": "Api.contract",
+        "pk": 2,
+        "fields": {
+            "customer": 1,
+            "contract_number": "654321",
+            "premium": "501.00"
+        }
+    },
+    {
+        "model": "Api.contract",
+        "pk": 3,
+        "fields": {
+            "customer": 2,
+            "contract_number": "789012",
+            "premium": "502.00"
+        }
+    }
+]
