@@ -55,3 +55,24 @@ Ich habe zusätzlich Fixtures angelegt, um Daten wie folgt einzuspielen:
 ```
 python manage.py loaddata initial_data.json
 ```
+### Aufgabe 2
+
+Anforderungen:
+* Implementiere ein PUT -Endpoint /customers/:id/contracts/:contract_id , das die Vertragsdaten aktualisiert.
+  * Umstellung durch das Ersetzen von "RetrieveAPIView" mit "RetrieveUpdateAPIView"
+* Die Eingabedaten werden als JSON im Request-Body übergeben.
+  * Wird von Django Rest so erwartet
+* Validiere die Eingabedaten und stelle sicher, dass ungültige Änderungen zurückgewiesen werden.
+  * Durch Validierungsmethoden im Serializer
+
+Verifizierung: 
+`http://127.0.0.1:8000/api/customers/1/contracts/2/` aufrufen, mit body:
+```json
+{
+    "contract_number": "654321",
+    "customer": 1,
+    "premium": "-1.00"
+}
+```
+Fehlermeldung: "Premium must be positive".
+Weitere Fehlermeldungen werden automatisch generiert (auch siehe models.py).

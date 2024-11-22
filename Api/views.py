@@ -17,9 +17,9 @@ class ContractList(generics.ListAPIView):
         return Contract.objects.filter(customer_id=customer_id)
 
 
-class ContractDetail(generics.RetrieveAPIView):
+class ContractDetail(generics.RetrieveUpdateAPIView):
     """
-    GET
+    GET/POST
     Returns contract details as JSON Object
     """
     serializer_class = ContractDetailSerializer
