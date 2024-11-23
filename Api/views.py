@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 
@@ -28,3 +29,10 @@ class ContractDetail(generics.RetrieveUpdateAPIView):
         customer_id = self.kwargs['customer_id']
         contract_id = self.kwargs['contract_id']
         return get_object_or_404(Contract, id=contract_id, customer_id=customer_id)
+
+
+def frontend(request):
+    """
+    Renders simple HTML frontend
+    """
+    return render(request, 'Api/frontend.html')

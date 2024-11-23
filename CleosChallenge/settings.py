@@ -57,7 +57,7 @@ ROOT_URLCONF = 'CleosChallenge.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],  # Setting dir static teamples
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

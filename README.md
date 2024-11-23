@@ -76,3 +76,16 @@ Verifizierung:
 ```
 Fehlermeldung: "Premium must be positive".
 Weitere Fehlermeldungen werden automatisch generiert (auch siehe models.py).
+
+### Aufgabe 3
+
+
+Anforderungen:
+
+* Lade die Vertragsdaten über die API und zeige sie in einer Tabelle an.
+  * Serializer "ContractListSerializer" angepasst, damit über den Endpunkt `/api/customers/:id/contracts/` nun alle werte übergeben werden. Hier mit sollen rekursive anfragen vermieden werden.
+* Binde ein Formular ein, das es ermöglicht, die Vertragsdaten zu ändern.
+  * Implementierung fetch anfragen auf die API, Überlegung bei mehr anfragen einen fetch handler zu bauen. 
+  * Beim form-submit wurde direkt die Seite neu geladen. Beim simplen neu laden geht jedoch die customer ID verloren daher, `e.preventDefault()` um Refresh zu unterbinden und nur die Tabelle neu zu laden.
+* Nach dem Abschicken des Formulars sollen die Änderungen in der API gespeichert und eine Bestätigung der geänderten Daten angezeigt werden.
+
