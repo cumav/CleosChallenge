@@ -91,6 +91,8 @@ Anforderungen:
 
 ### Aufgabe 4
 
+Anforderungen:
+
 * Im Web-Frontend wird nach der Aktualisierung eine Liste der geänderten Felder mit alten und neuen Werten angezeigt.
   * Abgleich der History im Frontend und einfügen der Historischen werte falls eine Änderung vorliegt. 
   * Zusätzlich Fehlerbehebung von verwechslung von ContractID und ContractName und folgende falsche Abspeicherung. `Patch` wäre optimaler da hier nicht alle Felder geupdated werden müssen.
@@ -102,3 +104,15 @@ python manage.py makemigrations
 python manage.py migrate 
 ```
 
+### Aufgabe 5
+
+Anforderungen:
+
+* Implementiere einen POST-Endpoint /login, der Benutzername und Passwort akzeptiert und bei erfolgreicher Authentifizierung einen Token zurückgibt.
+  * Implementierung der `Login` view unter Verwendung der Django eigenen Authentifizierung und Benutzerverwaltung.
+  * Hierfür kann ein Benutzer mit `python manage.py createsuperuser` angelegt werde (zur schnellen Demo). Hier username: admin und PW: admin. SQLLite Datei lade ich daher mit ins repo
+* Überprüfe bei jedem API-Aufruf, ob ein gültiger Token im Header enthalten ist.
+  * Durch Django eigene `permission_classes`
+  * Im frontend nach login über SessionStore aufrufbar
+* Tokens werden serverseitig in einer einfachen Datenstruktur gespeichert.
+  * Übernommen von Django

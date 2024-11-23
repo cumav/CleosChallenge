@@ -13,6 +13,7 @@
   </style>
 </head>
 <body class="container py-4">
+
   <h1 class="mb-4">Vertragsverwaltung</h1>
 
   <!-- Customer ID Input -->
@@ -65,6 +66,17 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+
+      const token = sessionStorage.getItem('authToken'); // Retrieve token from sessionStorage
+
+      if (!token) {
+          // Redirect to the login page
+          window.location.href = 'http://127.0.0.1:8000/api/login';
+          return;
+      }
+
+      const headers = { 'Authorization': `Token ${token}`, 'Content-Type': 'application/json'};
+
       const fetchBtn = document.getElementById('fetchContractsBtn');
       const contractsTable = document.getElementById('contractsTable').querySelector('tbody');
       const editForm = document.getElementById('editContractForm');
@@ -95,7 +107,10 @@
         currentCustomerId = customerId;
         contractsTable.innerHTML = '';
 
-        fetch(`/api/customers/${customerId}/contracts/`)
+        fetch(`/api/customers/${customerId}/contracts/`, {
+              method: 'GET',
+              headers: headers
+          })
           .then(res => res.json())
           .then(data => {
             if (data.length === 0) {
@@ -131,7 +146,10 @@
       contractsTable.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
           const contractId = e.target.getAttribute('data-id');
-          fetch(`/api/customers/${currentCustomerId}/contracts/${contractId}/`)
+          fetch(`/api/customers/${currentCustomerId}/contracts/${contractId}/`, {
+                method: 'GET',
+                headers: headers
+            })
             .then(res => res.json())
             .then(contract => {
               document.getElementById('contractId').value = contract.id;
@@ -159,7 +177,7 @@
 
         fetch(`/api/customers/${currentCustomerId}/contracts/${contractId}/`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: headers,
           body: JSON.stringify(
             {
               premium: parseFloat(premium),
