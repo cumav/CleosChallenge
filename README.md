@@ -89,3 +89,16 @@ Anforderungen:
   * Beim form-submit wurde direkt die Seite neu geladen. Beim simplen neu laden geht jedoch die customer ID verloren daher, `e.preventDefault()` um Refresh zu unterbinden und nur die Tabelle neu zu laden.
 * Nach dem Abschicken des Formulars sollen die Änderungen in der API gespeichert und eine Bestätigung der geänderten Daten angezeigt werden.
 
+### Aufgabe 4
+
+* Im Web-Frontend wird nach der Aktualisierung eine Liste der geänderten Felder mit alten und neuen Werten angezeigt.
+  * Abgleich der History im Frontend und einfügen der Historischen werte falls eine Änderung vorliegt. 
+  * Zusätzlich Fehlerbehebung von verwechslung von ContractID und ContractName und folgende falsche Abspeicherung. `Patch` wäre optimaler da hier nicht alle Felder geupdated werden müssen.
+* Speichere die alten Werte in einer Datenstruktur, um sie für den Vergleich anzuzeigen.
+  * Um die Änderungshistorie im Django model zu Tracken, gibt es das Modul `django-simple-history`. Nach Implementierung müssen nun noch die Datenbankmigrationen durchgeführt werden,
+  so wie der ``ContractListSerializer`` um `last_hisotry` erweitert werden.
+```
+python manage.py makemigrations
+python manage.py migrate 
+```
+

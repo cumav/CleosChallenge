@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Vertragsverwaltung</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .change{
+      color: red;
+      margin-left: 10px;
+    }
+  </style>
 </head>
 <body class="container py-4">
   <h1 class="mb-4">Vertragsverwaltung</h1>
@@ -96,11 +102,23 @@
               showMessage('Keine Verträge gefunden.', 'error');
               return;
             }
+
             data.forEach(contract => {
+              const lastHistory = contract.last_history; // Extract last_history
+              const changes = {};
+
+              for (const key in contract) {
+                  if (key === "last_history") continue; // Skip the last_history field
+
+                  // Compare values in data and last_history
+                  if (contract[key] !== lastHistory[key]) {
+                      changes[key] = lastHistory[key];
+                  }
+              }
               const row = `<tr>
                 <td>${contract.id}</td>
-                <td>${contract.contract_number}</td>
-                <td>${contract.premium}</td>
+                <td>${contract.contract_number}  ${changes.contract_number ? `<span class="change">(${changes.contract_number})</span>` : ''}</td>
+                <td>${contract.premium} ${changes.premium ? `<span class="change">(${changes.premium})</span>` : ''}</td>
                 <td><button data-id="${contract.id}" class="btn btn-sm btn-success">Bearbeiten</button></td>
               </tr>`;
               contractsTable.insertAdjacentHTML('beforeend', row);
@@ -131,6 +149,7 @@
         // Prevent default form page refresh
         e.preventDefault();
         const contractId = document.getElementById('contractId').value;
+        const contractNumber = document.getElementById('contractNumber').value;
         const premium = document.getElementById('premium').value;
 
         if (!premium) {
@@ -145,7 +164,7 @@
             {
               premium: parseFloat(premium),
               customer: currentCustomerId,
-              contract_number: contractId
+              contract_number: contractNumber
             }
           )
         })
