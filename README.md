@@ -116,3 +116,14 @@ Anforderungen:
   * Im frontend nach login über SessionStore aufrufbar
 * Tokens werden serverseitig in einer einfachen Datenstruktur gespeichert.
   * Übernommen von Django
+
+
+### Aufgabe 6
+
+* Verwende die JWT-Bibliothek, um beim Login ein signiertes Token zu generieren.
+  * Token mit JWT ausgetauscht. Dafür das Modul `djangorestframework-simplejwt` (in requirements.txt) hinzugefügt. 
+* Überprüfe bei jedem API-Aufruf die Signatur und Gültigkeit des Tokens.
+  * `TokenAuthentication` mit `JWTAuthentication` ersetzt.
+* Entferne die serverseitige Speicherung von Tokens – die Authentifizierung erfolgt ausschließlich über JWTs.
+  * Wird von Django erledigt
+

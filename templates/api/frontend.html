@@ -75,7 +75,7 @@
           return;
       }
 
-      const headers = { 'Authorization': `Token ${token}`, 'Content-Type': 'application/json'};
+      const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'};
 
       const fetchBtn = document.getElementById('fetchContractsBtn');
       const contractsTable = document.getElementById('contractsTable').querySelector('tbody');

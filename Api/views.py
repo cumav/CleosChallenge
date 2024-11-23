@@ -1,13 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
 
 from .models import Contract
 from .serializers import ContractDetailSerializer, ContractListSerializer
@@ -18,7 +18,7 @@ class ContractList(generics.ListAPIView):
     GET
     List all contracts of a given Customer (ID) as JSON List
     """
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     serializer_class = ContractListSerializer
@@ -33,7 +33,7 @@ class ContractDetail(generics.RetrieveUpdateAPIView):
     GET/POST
     Returns contract details as JSON Object
     """
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     serializer_class = ContractDetailSerializer
@@ -78,13 +78,13 @@ class Login(APIView):
                 'error': 'Ungültige Anmeldedaten'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Create token or use existing one
-        token, created = Token.objects.get_or_create(user=user)
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
 
         return Response({
             'status': 'success',
             'data': {
-                'token': token.key,
+                'token': str(refresh.access_token),
                 'user': user.pk,
             }
         }, status=status.HTTP_200_OK)
