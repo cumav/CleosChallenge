@@ -35,5 +35,14 @@
             "contract_number": "789012",
             "premium": "502.00"
         }
+    },
+        {
+        "model": "Api.contract",
+        "pk": 4,
+        "fields": {
+            "customer": 2,
+            "contract_number": "889012",
+            "premium": "102.00"
+        }
     }
 ]

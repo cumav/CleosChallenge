@@ -16,9 +16,7 @@ Including another URLconf
 """
 from django.urls import path, include
 
-from Api.views import frontend
 
 urlpatterns = [
-    path('api/', include('Api.urls')),
-    path('', frontend, name='frontend'),
+    path('', include('Api.urls')),
 ]

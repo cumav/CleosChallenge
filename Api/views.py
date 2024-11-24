@@ -52,7 +52,7 @@ class Login(APIView):
         """
         Display HTML when visiting url in Browser
         """
-        return render(request, 'Api/login.html')
+        return render(request, 'api/login.html')
 
     def post(self, request):
         """
@@ -94,4 +94,4 @@ def frontend(request):
     """
     Renders simple HTML frontend
     """
-    return render(request, 'Api/frontend.html')
+    return render(request, 'api/frontend.html')

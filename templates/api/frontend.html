@@ -65,27 +65,85 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" ></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // Utility function to parse JWT
+    function parseJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
 
-      const token = sessionStorage.getItem('authToken'); // Retrieve token from sessionStorage
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            return null;
+        }
+    }
 
-      if (!token) {
-          // Redirect to the login page
-          window.location.href = 'http://127.0.0.1:8000/api/login';
-          return;
-      }
+    // Function to check if the token is expired
+    function isTokenExpired(token) {
+        const decoded = parseJwt(token);
+        if (!decoded || !decoded.exp) {
+            return true; // Consider token expired if it can't be parsed
+        }
+        const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+        return decoded.exp < currentTime;
+    }
 
-      const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'};
+  document.addEventListener('DOMContentLoaded', () => {
 
-      const fetchBtn = document.getElementById('fetchContractsBtn');
-      const contractsTable = document.getElementById('contractsTable').querySelector('tbody');
-      const editForm = document.getElementById('editContractForm');
-      const messageContainer = document.getElementById('messageContainer');
-      const editSection = document.getElementById('editSection');
-      let currentCustomerId = null;
+    let token = sessionStorage.getItem('authToken'); // Retrieve token from sessionStorage
 
-      // Display message
-      const showMessage = (msg, type) => {
+    // Function to handle token expiration
+    function handleTokenExpiration() {
+        // Clear the token from storage
+        sessionStorage.removeItem('authToken');
+        // Redirect to the login page
+        window.location.href = 'http://127.0.0.1:8000/login';
+    }
+
+    // Initial token check
+    if (!token || isTokenExpired(token)) {
+        handleTokenExpiration();
+        return;
+    }
+
+    // Optionally, set up a timer to handle token expiration proactively
+    const decodedToken = parseJwt(token);
+    if (decodedToken && decodedToken.exp) {
+        const currentTime = Math.floor(Date.now() / 1000);
+        const timeUntilExpiration = decodedToken.exp - currentTime;
+        // Set a timeout to handle expiration a bit before the actual time
+        setTimeout(handleTokenExpiration, (timeUntilExpiration - 60) * 1000); // 60 seconds before expiration
+    }
+
+    // Update token variable in case it changes later
+    function getToken() {
+        const currentToken = sessionStorage.getItem('authToken');
+        if (!currentToken || isTokenExpired(currentToken)) {
+            handleTokenExpiration();
+        }
+        return currentToken;
+    }
+
+    // Define headers with the latest token
+    function getHeaders() {
+        const currentToken = getToken();
+        return { 
+            'Authorization': `Bearer ${currentToken}`, 
+            'Content-Type': 'application/json'
+        };
+    }
+
+    const fetchBtn = document.getElementById('fetchContractsBtn');
+    const contractsTable = document.getElementById('contractsTable').querySelector('tbody');
+    const editForm = document.getElementById('editContractForm');
+    const messageContainer = document.getElementById('messageContainer');
+    const editSection = document.getElementById('editSection');
+    let currentCustomerId = null;
+
+    // Display message
+    const showMessage = (msg, type) => {
         const alertType = type === 'success' ? 'alert-success' : 'alert-danger';
         messageContainer.innerHTML = `<div class="alert ${alertType} alert-dismissible fade show" role="alert">
           ${msg}
@@ -95,10 +153,10 @@
           const alert = bootstrap.Alert.getOrCreateInstance(messageContainer.querySelector('.alert'));
           alert.close(); 
         }, 5000);
-      };
+    };
 
-      // Fetch and display contracts
-      fetchBtn.addEventListener('click', () => {
+    // Fetch and display contracts
+    fetchBtn.addEventListener('click', () => {
         const customerId = document.getElementById('customerId').value.trim();
         if (!customerId) {
           showMessage('Bitte eine Kunden-ID eingeben.', 'error');
@@ -107,63 +165,87 @@
         currentCustomerId = customerId;
         contractsTable.innerHTML = '';
 
-        fetch(`/api/customers/${customerId}/contracts/`, {
+        fetch(`/customers/${customerId}/contracts/`, {
               method: 'GET',
-              headers: headers
+              headers: getHeaders()
           })
-          .then(res => res.json())
-          .then(data => {
-            if (data.length === 0) {
-              showMessage('Keine Verträge gefunden.', 'error');
-              return;
-            }
-
-            data.forEach(contract => {
-              const lastHistory = contract.last_history; // Extract last_history
-              const changes = {};
-
-              for (const key in contract) {
-                  if (key === "last_history") continue; // Skip the last_history field
-
-                  // Compare values in data and last_history
-                  if (contract[key] !== lastHistory[key]) {
-                      changes[key] = lastHistory[key];
-                  }
+          .then(res => {
+              if (res.status === 401 || res.status === 403) {
+                  handleTokenExpiration();
+                  throw new Error('Unauthorized');
               }
-              const row = `<tr>
-                <td>${contract.id}</td>
-                <td>${contract.contract_number}  ${changes.contract_number ? `<span class="change">(${changes.contract_number})</span>` : ''}</td>
-                <td>${contract.premium} ${changes.premium ? `<span class="change">(${changes.premium})</span>` : ''}</td>
-                <td><button data-id="${contract.id}" class="btn btn-sm btn-success">Bearbeiten</button></td>
-              </tr>`;
-              contractsTable.insertAdjacentHTML('beforeend', row);
-            });
+              return res.json();
           })
-          .catch(() => showMessage('Fehler beim Laden der Verträge.', 'error'));
-      });
+          .then(data => {
+              if (data.length === 0) {
+                  showMessage('Keine Verträge gefunden.', 'error');
+                  return;
+              }
 
-      // Handle edit button clicks
-      contractsTable.addEventListener('click', (e) => {
+              data.forEach(contract => {
+                  const lastHistory = contract.last_history; // Extract last_history
+                  const changes = {};   
+
+                  // Check if history exists
+                  if (lastHistory !== null) {
+                      for (const key in contract) {
+                          // Don't compare last_history with itself
+                          if (key === "last_history") continue; // Skip the last_history field
+
+                          // Compare values in data and last_history
+                          if (contract[key] !== lastHistory[key]) {
+                              changes[key] = lastHistory[key];
+                          }
+                      }
+                  }
+                  const row = `<tr>
+                    <td>${contract.id}</td>
+                    <td>${contract.contract_number}  ${changes.contract_number ? `<span class="change">(${changes.contract_number})</span>` : ''}</td>
+                    <td>${contract.premium} ${changes.premium ? `<span class="change">(${changes.premium})</span>` : ''}</td>
+                    <td><button data-id="${contract.id}" class="btn btn-sm btn-success">Bearbeiten</button></td>
+                  </tr>`;
+                  contractsTable.insertAdjacentHTML('beforeend', row);
+              });
+          })
+          .catch(error => {
+              if (error.message !== 'Unauthorized') {
+                  showMessage('Fehler beim Laden der Verträge.', 'error');
+              }
+          });
+    });
+
+    // Handle edit button clicks
+    contractsTable.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
-          const contractId = e.target.getAttribute('data-id');
-          fetch(`/api/customers/${currentCustomerId}/contracts/${contractId}/`, {
-                method: 'GET',
-                headers: headers
-            })
-            .then(res => res.json())
-            .then(contract => {
-              document.getElementById('contractId').value = contract.id;
-              document.getElementById('contractNumber').value = contract.contract_number;
-              document.getElementById('premium').value = contract.premium;
-              // Display form
-              editSection.hidden = false; 
-            })
-            .catch(() => showMessage('Fehler beim Laden der Vertragsdetails.', 'error'));
+            const contractId = e.target.getAttribute('data-id');
+            fetch(`/customers/${currentCustomerId}/contracts/${contractId}/`, {
+                  method: 'GET',
+                  headers: getHeaders()
+              })
+              .then(res => {
+                  if (res.status === 401 || res.status === 403) {
+                      handleTokenExpiration();
+                      throw new Error('Unauthorized');
+                  }
+                  return res.json();
+              })
+              .then(contract => {
+                  document.getElementById('contractId').value = contract.id;
+                  document.getElementById('contractNumber').value = contract.contract_number;
+                  document.getElementById('premium').value = contract.premium;
+                  // Display form
+                  editSection.hidden = false; 
+              })
+              .catch(error => {
+                  if (error.message !== 'Unauthorized') {
+                      showMessage('Fehler beim Laden der Vertragsdetails.', 'error');
+                  }
+              });
         }
-      });
+    });
 
-      // Handle form submission
-      editForm.addEventListener('submit', (e) => {
+    // Handle form submission
+    editForm.addEventListener('submit', (e) => {
         // Prevent default form page refresh
         e.preventDefault();
         const contractId = document.getElementById('contractId').value;
@@ -175,9 +257,9 @@
           return;
         }
 
-        fetch(`/api/customers/${currentCustomerId}/contracts/${contractId}/`, {
+        fetch(`/customers/${currentCustomerId}/contracts/${contractId}/`, {
           method: 'PUT',
-          headers: headers,
+          headers: getHeaders(),
           body: JSON.stringify(
             {
               premium: parseFloat(premium),
@@ -187,15 +269,24 @@
           )
         })
           .then(res => {
-            if (!res.ok) throw new Error();
-            showMessage('Vertrag erfolgreich aktualisiert.', 'success');
-            editForm.reset();
-            // Reload contracts
-            fetchBtn.click(); 
+              if (res.status === 401 || res.status === 403) {
+                  handleTokenExpiration();
+                  throw new Error('Unauthorized');
+              }
+              if (!res.ok) throw new Error();
+              showMessage('Vertrag erfolgreich aktualisiert.', 'success');
+              editForm.reset();
+              // Reload contracts
+              fetchBtn.click(); 
           })
-          .catch(() => showMessage('Fehler beim Speichern der Änderungen.', 'error'));
-      });
+          .catch(error => {
+              if (error.message !== 'Unauthorized') {
+                  showMessage('Fehler beim Speichern der Änderungen.', 'error');
+              }
+          });
     });
+    });
+
   </script>
 </body>
 </html>

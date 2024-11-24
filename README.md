@@ -1,4 +1,4 @@
-# Gedanken vor Implementierung
+# Vor Umsetzung
 
 Da die Sprache frei wählbar ist, habe ich mich für die Sprache entschieden, die ich am meisten verwende: Python. Beim Überlegen der Challenge ist aufgefallen, dass sich besonders auf folgende Themen fokussiert wird:
 
@@ -29,6 +29,20 @@ Warum Qualität? Ein weit verbreitetes Framework macht im Vergleich zu Eigenimpl
 
 Django
 
+# Backend starten
+
+### Docker:
+```shell
+docker build -t cleos-challenge .
+docker run -p 8000:8000 cleos-challenge
+```
+Dann `http://127.0.0.1:8000/` aufrufen.
+### Python 
+```shell
+pip install -r requirements.txt
+python manage.py runserver
+```
+Dann `http://127.0.0.1:8000/` aufrufen.
 # Umsetzung
 
 ### Aufgabe 1
@@ -94,8 +108,8 @@ Anforderungen:
 Anforderungen:
 
 * Im Web-Frontend wird nach der Aktualisierung eine Liste der geänderten Felder mit alten und neuen Werten angezeigt.
-  * Abgleich der History im Frontend und einfügen der Historischen werte falls eine Änderung vorliegt. 
-  * Zusätzlich Fehlerbehebung von verwechslung von ContractID und ContractName und folgende falsche Abspeicherung. `Patch` wäre optimaler da hier nicht alle Felder geupdated werden müssen.
+  * Abgleich der History im Frontend und einfügen der Historischen werte, falls eine Änderung vorliegt. 
+  * Zusätzlich Fehlerbehebung von Verwechslung von ContractID und ContractName und folgende falsche Abspeicherung. `Patch` wäre optimaler da hier nicht alle Felder geupdated werden müssen.
 * Speichere die alten Werte in einer Datenstruktur, um sie für den Vergleich anzuzeigen.
   * Um die Änderungshistorie im Django model zu Tracken, gibt es das Modul `django-simple-history`. Nach Implementierung müssen nun noch die Datenbankmigrationen durchgeführt werden,
   so wie der ``ContractListSerializer`` um `last_hisotry` erweitert werden.
@@ -127,3 +141,8 @@ Anforderungen:
 * Entferne die serverseitige Speicherung von Tokens – die Authentifizierung erfolgt ausschließlich über JWTs.
   * Wird von Django erledigt
 
+### Bugfixes
+
+* Wenn ein JWT ausläuft, direktes Redirect zur Login-Seite
+* Anforderung verlangte Endpunkt `/customers/:id/contracts`, zuvor jedoch `/api/customers/:id/contracts`
+* Dockerfile
